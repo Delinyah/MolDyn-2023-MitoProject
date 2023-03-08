@@ -1,1 +1,20 @@
-X
+#Note: All input and output files can be found in "MolDyn-2023-MitoProject/Individual Membrane Modeling/Inner Membrane".
+
+#Initial Configuration of System
+./insane -d 10 -o system.gro -p topol.top -center -pbc hex -sol W /
+-u POPE:4 -u CL4P:1 -u POPC:5 /
+-l POPE:3 -l CL4P:3 -l POPC:3 -l PAPI:1
+
+#Energy Minimization
+gmx grompp -p topol.top -f minimization.mdp -c system.gro -o minimization.tpr
+gmx mdrun -s minimization.tpr -v -deffnm em
+
+#NVT
+gmx grompp -f nvt.mdp -c em.gro -p topol.top -o nvt.tpr
+gmx mdrun -v -deffnm nvt
+
+#NPT
+gmx grompp -f npt.mdp -c em.gro -p topol.top -o npt.tpr
+gmx mdrun -v -deffnm npt
+
+#Production run not executed
