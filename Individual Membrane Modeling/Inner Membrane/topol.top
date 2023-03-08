@@ -1,0 +1,18 @@
+#include "martini_v2.2.itp"
+#include "martini_v2.0_lipids_all_201506.itp"
+
+[ system ]
+; name
+INSANE! Membrane UpperLeaflet>POPE:CDL1:POPC=4.0:1.0:5.0 LowerLeaflet>POPE:CDL1:POPC:PAPI=3.0:3.0:3.0:1.0
+
+
+[ molecules ]
+; name  number
+POPE            57
+CDL1            14
+POPC            71
+POPE            42
+CDL1            42
+POPC            42
+PAPI            14
+W             3906
