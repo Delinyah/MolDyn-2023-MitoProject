@@ -1,0 +1,24 @@
+#Coarse-graining
+martinize.py -f AF-Q9Y6C9-F1-model_v4.pdb -o MTCH-AF-cg.top -x MTCH-AF.pdb -dssp /usr/bin/dssp -p backbone -ff martini22
+
+#Building initial configuration
+insane -u POPC:5.5 -u CHOL:0.5 -u SAPE:4 /
+-alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' /
+-l POPC:5.5 -l CHOL:0.5 -l PAPI:2 -l SAPE:2 /
+-alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' /
+-d 10 -o system.gro -p topol.top -f MTCH-AF.pdb -center /
+-pbc hex -sol W -salt 0 -excl -1
+
+#EM
+gmx grompp -p topol.top -f ../minimization.mdp -c system.gro -o minimization.tpr
+gmx mdrun -v -deffnm em -s minimization.tpr -nt 1
+
+#NVT
+gmx grompp -f ../nvt.mdp -c em.gro -p topol.top -o nvt.tpr
+gmx mdrun -v -deffnm nvt -s nvt.tpr -nt 1
+
+#NPT
+gmx grompp -f ../npt.mdp -c em.gro -p topol.top -o npt.tpr
+gmx mdrun -v -deffnm npt -s npt.tpr -nt 1
+
+#production run
