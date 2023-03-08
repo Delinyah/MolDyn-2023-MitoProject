@@ -21,4 +21,4 @@ gmx mdrun -v -deffnm nvt
 gmx grompp -f npt.mdp -c em.gro -p topol.top -o npt.tpr
 gmx mdrun -v -deffnm npt
 
-#Production run
+#Production run not executed
