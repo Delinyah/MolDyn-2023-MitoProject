@@ -1,0 +1,23 @@
+#include "../martini_v2.2.itp"
+#include "../SAPE.itp"
+#include "Protein_A.itp"
+#include "../martini_v2.0_ions.itp"
+#include "../martini_v2.0_lipids_all_201506.itp"
+
+[ system ]
+; name
+Protein in INSANE! Membrane UpperLeaflet>POPC:CHOL:SAPE=5.5:0.5:4.0 LowerLeaflet>POPC:CHOL:PAPI:SAPE=5.5:0.5:2.0:2.0
+
+
+[ molecules ]
+; name  number
+Protein_A          1
+POPC           215
+CHOL            19
+SAPE           156
+POPC           213
+CHOL            19
+PAPI            77
+SAPE            77
+W            24486
+CL-              3
