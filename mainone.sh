@@ -12,7 +12,7 @@ function help {
   echo "Note: The pdb-code must be specified without .pdb extension (just the 4-letter code)."
   echo "Note: The pdb-file is the only file that should be present in the working directory. Fetching structures from PDB or OPM will be available in the future."
   echo ""
-  echo "Don't forget to give permission to execute this file (chmod +x OMMautomate.sh)."
+  echo "Don't forget to give permission to execute this file (chmod +x mainone.sh)."
   echo ""
   echo "Note: After running, all files in the working directory will be moved (not copied) to a folder that is named after the pdb-code."
   echo ""
