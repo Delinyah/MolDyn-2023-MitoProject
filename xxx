@@ -1,2 +1,7 @@
 # Modify topol.top include statements
 sed -i 's/#include "martini.itp"/#include "..\/martini_v2.2.itp"\n#include "..\/SAPE.itp"\n#include "Protein_A.itp"\n#include "..\/martini_v2.0_ions.itp"\n#include "..\/martini_v2.0_lipids_all_201506.itp"/; s/\bprotein\b/Protein_A/g' topol.top
+
+# EM
+echo "${min_mdp}" > minimization.mdp
+gmx grompp -p topol.top -f ../minimization.mdp -c system.gro -o minimization.tpr -maxwarn 1
+gmx mdrun -v -deffnm em -s minimization.tpr -nt $nt -maxwarn 1
