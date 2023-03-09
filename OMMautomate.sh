@@ -91,5 +91,5 @@ gmx rmsf -s npt.tpr -f npt.xtc -o rmsf_npt.xvg
 gmx gyrate -s npt.tpr -f npt.xtc -o gyrate_npt.xvg
 
 #Shoutouts
-echo "'The computer was born to solve problems that did not exist before.' — Bill Gates, Microsoft founder and former CEO"
-echo "You made it to the end of the script. That can't be right..."
+echo -e "\033[38;5;208m'The computer was born to solve problems that did not exist before.' — Bill Gates, Microsoft founder and former CEO\033[0m"
+echo -e "\033[38;5;226mYou made it to the end of the script. That can't be right...\033[0m"
