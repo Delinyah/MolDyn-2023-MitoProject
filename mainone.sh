@@ -3,7 +3,7 @@
 # Help function 
 function help {
   echo "Automated Workflow for Outer Mitochondrial Membrane Simulation Modeling"
-  echo "Title: mainone (for MArtinize-INsanify Outer-membraNE)
+  echo "Title: mainone (for MArtinize-INsanify Outer-membraNE)"
   echo "Author: Delinyah C. Koning (as of March 9, 2023)"
   echo ""
   echo "Usage: omain.sh <pdb_code> [-nt <number_of_threads>]"
