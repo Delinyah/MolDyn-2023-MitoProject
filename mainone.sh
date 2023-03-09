@@ -65,3 +65,35 @@ fi
 
 # Building initial configuration
 ../insane -u POPC:5.5 -u CHOL:0.5 -u SAPE:4 -alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' -l POPC:5.5 -l CHOL:0.5 -l PAPI:2 -l SAPE:2 -alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' -d 10 -o system.gro -p topol.top -f ${cg_pdb} -center -pbc hex -sol W -salt 0 -excl -1
+
+# Modify topol.top include statements
+sed -i 's/#include "martini.itp"/#include "..\/martini_v2.2.itp"\n#include "..\/SAPE.itp"\n#include "Protein_A.itp"\n#include "..\/martini_v2.0_ions.itp"\n#include "..\/martini_v2.0_lipids_all_201506.itp"/; s/\bProtein\b/Protein_A/g' topol.top
+
+# EM
+echo "${min_mdp}" > minimization.mdp
+gmx grompp -p topol.top -f ../minimization.mdp -c system.gro -o minimization.tpr -maxwarn 1
+gmx mdrun -v -deffnm em -s minimization.tpr -nt $nt
+
+# NVT
+echo "${nvt_mdp}" > nvt.mdp
+gmx grompp -f ../nvt.mdp -c em.gro -p topol.top -o nvt.tpr -maxwarn 1
+echo " "gmx mdrun -v -deffnm nvt -s nvt.tpr -nt $nt
+
+# NPT
+echo "${npt_mdp}" > npt.mdp
+gmx grompp -f ../npt.mdp -c em.gro -p topol.top -o npt.tpr -maxwarn 1
+gmx mdrun -v -deffnm npt -s npt.tpr -nt $nt
+
+#Analysis (echoes '0' for whole system)
+yes 0 | head -n 2 | gmx rms -s npt.tpr -f npt.xtc -o rmsd_npt.xvg
+echo 0 | gmx rmsf -s npt.tpr -f npt.xtc -o rmsf_npt.xvg
+echo 0 | gmx gyrate -s npt.tpr -f npt.xtc -o gyrate_npt.xvg
+
+#Shoutouts
+echo " "
+echo -e "\033[38;5;208m'The computer was born to solve problems that did not exist before.' — Bill Gates, Microsoft founder and former CEO\033[0m"
+echo " "
+echo -e "\033[38;5;226mYou made it to the end of the script. That can't be right...\033[0m"
+echo " "
+echo " "
+echo " "
