@@ -8,7 +8,7 @@ function help {
   echo -e "\033[38;5;34mAuthor: Delinyah C. Koning (as of March 9, 2023)\033[0m"
   echo -e "\033[38;5;34mUniversity of Groningen, FSE Faculty, GBB Institute, Molecular Dynamics Group (2023)\033[0m" 
   echo ""
-  echo "Usage: omain.sh <pdb_code> [-nt <number_of_threads>]"
+  echo "Usage: ./mainine.sh <pdb_code> [-nt <number_of_threads>]"
   echo "Note: The pdb-code must be specified without .pdb extension (just the 4-letter code)."
   echo "Note: The pdb-file is the only file that should be present in the working directory. Fetching structures from PDB or OPM will be available in the future."
   echo ""
