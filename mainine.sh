@@ -2,6 +2,7 @@
 
 # Help function 
 function help {
+  echo ""
   echo -e "\033[38;5;208m'Automated Workflow for Inner Mitochondrial Membrane Simulation Modeling\033[0m"
   echo -e "\033[38;5;226mTitle: mainine (for MArtinize-INsanify Inner-membraNE...\033[0m"
   echo "Author: Delinyah C. Koning (as of March 9, 2023)"
