@@ -87,7 +87,7 @@ gmx mdrun -v -deffnm em -s minimization.tpr -nt $nt
 echo -e "\033[38;5;226mNVT equilibration...\033[0m"
 echo "${nvt_mdp}" > nvt.mdp
 gmx grompp -f ../nvt.mdp -c em.gro -p topol.top -o nvt.tpr -maxwarn 1
-echo " "gmx mdrun -v -deffnm nvt -s nvt.tpr -nt $nt
+gmx mdrun -v -deffnm nvt -s nvt.tpr -nt $nt
 
 # NPT
 echo -e "\033[38;5;226mNPT equilibration...\033[0m"
