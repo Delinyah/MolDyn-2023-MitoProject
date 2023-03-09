@@ -92,7 +92,7 @@ echo " "gmx mdrun -v -deffnm nvt -s nvt.tpr -nt $nt
 # NPT
 echo -e "\033[38;5;226mNPT equilibration...\033[0m"
 echo "${npt_mdp}" > npt.mdp
-gmx grompp -f ../npt.mdp -c em.gro -p topol.top -o npt.tpr -maxwarn 1
+gmx grompp -f ../npt.mdp -c nvt.gro -p topol.top -o npt.tpr -maxwarn 1
 gmx mdrun -v -deffnm npt -s npt.tpr -nt $nt
 
 #Analysis (echoes '0' for whole system)
