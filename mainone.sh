@@ -102,9 +102,9 @@ echo 0 | gmx rmsf -s npt.tpr -f npt.xtc -o rmsf_npt.xvg
 echo 0 | gmx gyrate -s npt.tpr -f npt.xtc -o gyrate_npt.xvg
 
 #Cleanup
-echo -e "\033[38;5;226mCleaning the directory for you...\033[0m"
+echo -e "\033[38;5;34mCleaning the directory for you...\033[0m"
 mkdir ./"$1"
-mv *.mdp *.xvg *.gro *.trr *.edr *.pdb *.log *.xtc *.top *.tpr *.ssd *.itp *.cpt ./"$1"
+mv -v *.mdp *.xvg *.gro *.trr *.edr *.pdb *.log *.xtc *.top *.tpr *.ssd *.itp *.cpt ./"$1"
 
 #Shoutouts
 echo " "
