@@ -1,7 +1,7 @@
 #colormime for "COLOR Mitochondrial MEmbrane"
 
 #open file (assumes file output is prefixed by 'npt' during mdrun; if not, change script)
-open npt.gro
+load npt.gro
 
 #make selections
 select POPC, resn POPC
