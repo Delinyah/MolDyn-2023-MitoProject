@@ -12,6 +12,8 @@ function help {
   echo "Don't forget to give permission to execute this file (chmod +x mainone.sh)."
   echo ""
   echo -e "\033[38;5;226mWithout editing the parameter files, the run is executed as follows:\033[0m"
+  echo "Martinize coarse-grains protein"
+  echo "Insane builds a charge-neutralized (NaCl) coarse-grained system with -excl set to -1 so that water can be placed everywhere (e.g. also inside barrel proteins)."
   echo "1000-step EM"
   echo "1500ps NVT (dt 0.03, nstxout 20, v-rescale coupling system)"
   echo "1500ps NPT (dt 0.03, nstxout 20, parrinello-rahman pressure coupling, semiisotropic)"
@@ -74,36 +76,6 @@ if [ -z "$1" ]
     exit 1
 fi
 
-# Coarse-graining
-echo -e "\033[38;5;226mCoarse graining your system...\033[0m"
-../martinize.py -f ${pdb_code}.pdb -o ${cg_top} -x ${cg_pdb} -dssp /usr/bin/dssp -p backbone -ff martini22
-
-# Building initial configuration
-echo -e "\033[38;5;226mHOld on, building system...\033[0m"
-../insane -u POPC:5.5 -u CHOL:0.5 -u SAPE:4 -alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' -l POPC:5.5 -l CHOL:0.5 -l PAPI:2 -l SAPE:2 -alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' -d 10 -o system.gro -p topol.top -f ${cg_pdb} -center -pbc hex -sol W -salt 0 -excl -1
-
-# Modify topol.top include statements
-sed -i 's/#include "martini.itp"/#include "..\/martini_v2.2.itp"\n#include "..\/SAPE.itp"\n#include "Protein_A.itp"\n#include "..\/martini_v2.0_ions.itp"\n#include "..\/martini_v2.0_lipids_all_201506.itp"/; s/\bProtein\b/Protein_A/g' topol.top
-
-# EM
-echo -e "\033[38;5;226mEnergy minimizing...\033[0m"
-echo "${min_mdp}" > minimization.mdp
-gmx grompp -p topol.top -f ../minimization.mdp -c system.gro -o minimization.tpr -maxwarn 1
-gmx mdrun -v -deffnm em -s minimization.tpr -nt $nt
-
-# NVT
-echo -e "\033[38;5;226mNVT equilibration...\033[0m"
-echo "${nvt_mdp}" > nvt.mdp
-gmx grompp -f ../nvt.mdp -c em.gro -p topol.top -o nvt.tpr -maxwarn 1
-gmx mdrun -v -deffnm nvt -s nvt.tpr -nt $nt
-
-# NPT
-echo -e "\033[38;5;226mNPT equilibration...\033[0m"
-echo "${npt_mdp}" > npt.mdp
-gmx grompp -f ../npt.mdp -c nvt.gro -p topol.top -o npt.tpr -maxwarn 1
-gmx mdrun -v -deffnm npt -s npt.tpr -nt $nt
-
-# run
 # Coarse-graining
 echo -e "\033[38;5;226mCoarse graining your system...\033[0m"
 ../martinize.py -f ${pdb_code}.pdb -o ${cg_top} -x ${cg_pdb} -dssp /usr/bin/dssp -p backbone -ff martini22
