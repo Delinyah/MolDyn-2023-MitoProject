@@ -27,6 +27,7 @@ function help {
   echo "Flag options:"
   echo "  -h, --help: Show this help message and exit."
   echo "  -nt: Number of threads to use in GROMACS simulations (default is 1)."
+  echo "  -fetch: Source for fetching PDB files (default is RCSB PDB). Currently supports 'rcsb' and 'opm'."
   echo ""
   echo "Prerequisites:"
   echo "  - .mdp files are located in the home directory (they will be sourced and copied to the working directory)."
@@ -36,15 +37,15 @@ function help {
   echo ""
 }
 
-
 # Parse command line arguments
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
   help
   exit 0
 fi
 
-# Set default number of threads
+# Set default number of threads and PDB fetch source
 nt=1
+pdb_fetch_source="rcsb"
 
 # Parse optional arguments
 while [[ $# -gt 1 ]]
@@ -57,6 +58,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    -fetch)
+    pdb_fetch_source="$3"
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown option
     echo "Unknown option: $2"
     help
@@ -65,6 +71,10 @@ case $key in
 esac
 done
 
+pdb_code=$1
+cg_pdb=${pdb_code}-cg.pdb
+cg_top=${pdb_code}-cg.top
+
 # Check if PDB code is provided as an argument
 if [ -z "$1" ]
   then
@@ -72,13 +82,19 @@ if [ -z "$1" ]
     exit 1
 fi
 
-pdb_code=$1
-cg_pdb=${pdb_code}-cg.pdb
-cg_top=${pdb_code}-cg.top
-
-# Fetch PDB file from OPM
-echo -e "\033[38;5;226mFetching PDB file from OPM...\033[0m"
-curl -s "http://opm.phar.umich.edu/pdb/${pdb_code}.pdb" > ${pdb_code}.pdb
+# Fetch PDB from source if specified
+if [ "$pdb_fetch_source" == "opm" ]
+then
+  echo -e "\033[38;5;226mFetching PDB from OPM...\033[0m"
+  curl -O https://opm-assets.storage.googleapis.com/pdb/${pdb_code}.pdb
+elif [ "$pdb_fetch_source" == "rcsb" ]
+then
+  echo -e "\033[38;5;226mFetching PDB from RCSB PDB...\033[0m"
+  curl -O https://files.rcsb.org/download/${pdb_code}.pdb
+else
+  echo -e "\033[38;5;196mUnknown PDB fetch source: $pdb_fetch_source\033[0m"
+  exit 1
+fi
 
 # Coarse-graining
 echo -e "\033[38;5;226mCoarse graining your system...\033[0m"
