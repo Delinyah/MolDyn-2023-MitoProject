@@ -1,3 +1,8 @@
+#colormime for "COLOR Mitochondrial MEmbrane"
+
+#open file (assumes file output is prefixed by 'npt' during mdrun; if not, change script)
+open npt.gro
+
 #make selections
 select POPC, resn POPC
 select CHOL, resn CHOL
@@ -15,6 +20,10 @@ color green, (name C* and POPE)
 color orange, (name C* and SAPE)
 color magenta, (name C* and PAPI)
 color yellow, (name C* and CDL1)
+
+#set spheres and set scale
+show spheres
+set sphere_scale, 1.25
 
 #load trajectory (assumes file output is prefixed by 'npt' during mdrun; if not, change script)
 load npt.xtc, npt
