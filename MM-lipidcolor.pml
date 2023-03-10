@@ -17,4 +17,4 @@ color magenta, (name C* and PAPI)
 color yellow, (name C* and CDL1)
 
 #load trajectory (assumes file output is prefixed by 'npt' during mdrun; if not, change script)
-load npt.xvg, npt
+load npt.xtc, npt
