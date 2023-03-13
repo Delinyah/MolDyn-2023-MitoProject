@@ -1,7 +1,7 @@
 #colormime for "COLOR Mitochondrial MEmbrane"
 
 #open file (assumes file output is prefixed by 'npt' during mdrun; if not, change script)
-load npt.gro
+load md.gro
 
 #make selections
 select POPC, resn POPC
@@ -26,4 +26,4 @@ show spheres
 set sphere_scale, 1.25
 
 #load trajectory (assumes file output is prefixed by 'npt' during mdrun; if not, change script)
-load npt.xtc, npt
+load md.xtc, npt
