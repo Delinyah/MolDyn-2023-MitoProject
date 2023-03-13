@@ -84,11 +84,11 @@ fi
 
 # Coarse-graining
 echo -e "\033[38;5;226mCoarse graining your system...\033[0m"
-../martinize.py -f ${pdb_code}.pdb -o ${cg_top} -x ${cg_pdb} -dssp /usr/bin/dssp -p backbone -ff martini22
+~/Project/OMM/martinize.py -f ${pdb_code}.pdb -o ${cg_top} -x ${cg_pdb} -dssp /usr/bin/dssp -p backbone -ff martini22
 
 # Building initial configuration
 echo -e "\033[38;5;226mHOld on, building system...\033[0m"
-../insane -u POPC:5.5 -u CHOL:0.5 -u SAPE:4 -alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' -l POPC:5.5 -l CHOL:0.5 -l PAPI:2 -l SAPE:2 -alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' -d 10 -o system.gro -p topol.top -f ${cg_pdb} -center -pbc hex -sol W -salt 0 -excl -1
+~/Project/OMM/insane -u POPC:5.5 -u CHOL:0.5 -u SAPE:4 -alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' -l POPC:5.5 -l CHOL:0.5 -l PAPI:2 -l SAPE:2 -alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' -d 10 -o system.gro -p topol.top -f ${cg_pdb} -center -pbc hex -sol W -salt 0 -excl -1
 
 # Modify topol.top include statements
 sed -i 's/#include "martini.itp"/#include "~\/Project\/OMM\/martini_v2.2.itp"\n#include "~\/Project\/OMM\/SAPE.itp"\n#include "Protein_A.itp"\n#include "~\/Project\/OMM\/martini_v2.0_ions.itp"\n#include "~\/Project\/OMM\/martini_v2.0_lipids_all_201506.itp"/; s/\bProtein\b/Protein_A/g' topol.top
