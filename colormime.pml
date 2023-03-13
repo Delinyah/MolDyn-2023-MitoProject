@@ -26,4 +26,4 @@ show spheres
 set sphere_scale, 1.25
 
 #load trajectory (assumes file output is prefixed by 'npt' during mdrun; if not, change script)
-load md.xtc, npt
+load md.xtc, md
