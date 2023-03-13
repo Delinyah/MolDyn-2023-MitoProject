@@ -72,7 +72,8 @@ cg_top=${pdb_code}-cg.top
 #Cleanup
 echo -e "\033[38;5;34mCreating an output folder...\033[0m"
 mkdir ./"${pdb_code}"
-cd .${pdb_code}.pdb ./${pdb_code}
+cp ${pdb_code}.pdb ./${pdb_code}
+cd /home/delinyah/
 
 # Check if PDB code is provided as an argument
 if [ -z "$1" ]
