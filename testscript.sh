@@ -92,7 +92,7 @@ echo -e "\033[38;5;226mHOld on, building system...\033[0m"
 
 # Modify topol.top include statements
 echo ';' >> topol.top
-insane 2>&1 | tee-a topol.top
+insane 2>&1 | tee -a topol.top
 
 # EM
 echo -e "\033[38;5;226mEnergy minimizing...\033[0m"
