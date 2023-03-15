@@ -90,12 +90,10 @@ echo -e "\033[38;5;226mCoarse graining your system...\033[0m"
 echo -e "\033[38;5;226mHOld on, building system...\033[0m"
 ~/Project/OMM/insane -u POPC:5.5 -u CHOL:0.5 -u SAPE:4 -alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' -l POPC:5.5 -l CHOL:0.5 -l PAPI:2 -l SAPE:2 -alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' -d 10 -o system.gro -p topol.top -f ${cg_pdb} -center -pbc hex -sol W -salt 0 -excl -1
 
-# Modify topol.top include statements
-echo ';' >> topol.top
-insane_output=$(~/Project/OMM/insane -u POPC:5.5 -u CHOL:0.5 -u SAPE:4 -alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' -l POPC:5.5 -l CHOL:0.5 -l PAPI:2 -l SAPE:2 -alname SAPE -alhead 'E P' -allink 'G G' -altail 'DDDDC CCCC' -d 10 -o system.gro -p topol.top -f ${cg_pdb} -center -pbc hex -sol W -salt 0 -excl -1 2>&1)
-echo "$insane_output" | grep 'moleculetype' -A 1 >> topol.top
+# Modify topol.top include statements based on Insane output
+xxxx
 
-# Add needed include topology statements to topol.top
+# Add other needed include topology statements to topol.top
 sed -i 's/#include "martini.itp"/#include "..\/martini_v2.2.itp"\n#include "..\/SAPE.itp"\n#include "..\/martini_v2.0_ions.itp"\n#include "..\/martini_v2.0_lipids_all_201506.itp"/; s/\bProtein\b/Protein/g' topol.top
 
 # EM
