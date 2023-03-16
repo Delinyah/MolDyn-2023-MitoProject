@@ -123,26 +123,15 @@ gmx mdrun -v -deffnm npt -s npt.tpr -nt $nt || error_exit
 
 # Production run
 echo -e "\033[38;5;226mCalculating RMSD, RMSF, and Rg after run...\033[0m" 
-yes 0 | head -n 2 | gmx rms -s md.tpr -f md.xtc -o rmsd_md.xvg || error_exit
-echo 0 | gmx rmsf -s md.tpr -f md.xtc -o rmsf_md.xvg || error_exit
-echo 0 | gmx gyrate -s md.tpr -f md.xtc -o gyrate_md.xvg || error_exit
-
-#Shoutouts
-echo " "
-echo -e "\033[38;5;208m'The computer was born to solve problems that did not exist before.' — Bill Gates, Microsoft founder and former CEO\033[0m"
-echo " "
-echo -e "\033[38;5;226mYou made it to the end of the script. That can't be right...\033[0m"
-echo -e "\033[38;5;226m:)\033[0m"
-echo " "cho -e "\033[38;5;226mNow running the real deal...\033[0m"
 echo "${run_mdp}" > run.mdp
-gmx grompp -f ~/Project/OMM/run.mdp -c npt.gro -p topol.top -o md.tpr -maxwarn 1
-gmx mdrun -v -deffnm md -s md.tpr -nt $nt
+gmx grompp -f ~/Project/OMM/run.mdp -c npt.gro -p topol.top -o md.tpr -maxwarn 1 || error_exit
+gmx mdrun -v -deffnm md -s md.tpr -nt $nt || error_exit
 
 #Analysis (echoes '0' for whole system)
 echo -e "\033[38;5;226mCalculating RMSD, RMSF, and Rg after run...\033[0m"
-yes 0 | head -n 2 | gmx rms -s md.tpr -f md.xtc -o rmsd_md.xvg
-echo 0 | gmx rmsf -s md.tpr -f md.xtc -o rmsf_md.xvg
-echo 0 | gmx gyrate -s md.tpr -f md.xtc -o gyrate_md.xvg
+yes 0 | head -n 2 | gmx rms -s md.tpr -f md.xtc -o rmsd_md.xvg || error_exit
+echo 0 | gmx rmsf -s md.tpr -f md.xtc -o rmsf_md.xvg || error_exit
+echo 0 | gmx gyrate -s md.tpr -f md.xtc -o gyrate_md.xvg || error_exit
 
 #Shoutouts
 echo " "
