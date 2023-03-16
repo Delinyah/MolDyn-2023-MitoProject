@@ -69,6 +69,11 @@ pdb_code=$1
 cg_pdb=${pdb_code}-cg.pdb
 cg_top=${pdb_code}-cg.top
 
+#Cleanup
+echo -e "\033[38;5;34mCleaning the directory for you...\033[0m"
+mkdir ./"${pdb_code}"
+mv ${pdb_code}.pdb ./"$1"
+
 # Check if PDB code is provided as an argument
 if [ -z "$1" ]
   then
@@ -116,14 +121,6 @@ echo -e "\033[38;5;226mCalculating RMSD, RMSF, and Rg after run...\033[0m"
 yes 0 | head -n 2 | gmx rms -s md.tpr -f md.xtc -o rmsd_md.xvg
 echo 0 | gmx rmsf -s md.tpr -f md.xtc -o rmsf_md.xvg
 echo 0 | gmx gyrate -s md.tpr -f md.xtc -o gyrate_md.xvg
-
-#Cleanup
-echo -e "\033[38;5;34mCleaning the directory for you...\033[0m"
-mkdir ./"$1"
-mv -v *.mdp *.xvg *.gro *.trr *.edr *.log *.xtc *.top *.tpr *.ssd *.itp *.cpt ./"$1"
-mv -v ${pdb_code}.pdb ./"$1"
-mv -v ${pdb_code}-cg.pdb ./"$1"
-mv -v step*.pdb ./"$1"
 
 #Shoutouts
 echo " "
