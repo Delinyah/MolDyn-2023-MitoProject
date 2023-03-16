@@ -17,7 +17,7 @@ function help {
   echo "1000-step EM"
   echo "1500ps NVT (dt 0.03, nstxout 20, v-rescale coupling system)"
   echo "1500ps NPT (dt 0.03, nstxout 20, parrinello-rahman pressure coupling, semiisotropic)"
-  echo "30ns production run (dt 0.03, nstep 1000000, nstxout 200)" 
+  echo "by default a 100ns production run (dt 0.03, nstep 3333333, nstxout 1000 >>> 3333 frames total, 30ps per frame)" 
   echo ""
   echo "Notes:"  
   echo "The pdb-code must be specified without .pdb extension (just the 4-letter code)."
