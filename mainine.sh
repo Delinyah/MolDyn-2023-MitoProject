@@ -4,11 +4,11 @@
 function help {
   echo "" 
   echo -e "\033[38;5;226mAutomated Workflow for Outer Mitochondrial Membrane Simulation Modeling\033[0m"   
-  echo -e "\033[38;5;208mTitle: mainone.sh (for 'MArtinize-INsanify Outer-membraNE...'\033[0m"
+  echo -e "\033[38;5;208mTitle: mainine.sh (for 'MArtinize-INsanify Inner-membraNE...'\033[0m"
   echo -e "\033[38;5;34mAuthor: Delinyah C. Koning (as of March 9, 2023)\033[0m"
   echo -e "\033[38;5;34mUniversity of Groningen, FSE Faculty, GBB Institute, Molecular Dynamics Group (2023)\033[0m" 
   echo ""
-  echo "Usage: ./mainone.sh <pdb_code> [-nt <number_of_threads>]"
+  echo "Usage: ./mainine.sh <pdb_code> [-nt <number_of_threads>]"
   echo "Don't forget to give permission to execute this file (chmod +x mainone.sh)."
   echo ""
   echo -e "\033[38;5;226mWithout editing the parameter files, the run is executed as follows:\033[0m"
