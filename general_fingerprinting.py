@@ -1,35 +1,45 @@
-import argparse
+# Lipid fingerprints
+# Here, for every frame, the particle positions in the XY plane are binned
+# and for each bin the distance to the nearest bin containing protein particles is determined,
+# together with the counts of particles of each lipid type per bin.
+# From this the cumulative particle counts are determined per frame as a function of distance.
+# The raw counts are divided by the numbers of particles per lipid to get
+# the cumulative number of lipids of each type as a function of distance.
+# These are then normalized to have a sum of one, yielding composition vectors,
+# which can be regarded as fingerprints for the region within the specified distance.
+# At the maximum distance, the composition is the overall composition
+# and this can be used to determine relative compositions allowing assessment of enrichment and depletion.
+# The relative compositions are presented on a $\log_{1.1}$ scale,
+# such that 1 and -1 indicate 10% enrichment and depletion, respectively.
+# This should suffice for the purpose here.
+# It is noted that further analysis can take the covariance matrix of the composition vector into account,
+# from which it could be seen whether specific lipid types are coupled
+# (e.g., negatively charged lipids might exchange and thus be negatively coupled in the covariance matrix).
+
 import MDAnalysis as mda
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import time
+import sys
 
-parser = argparse.ArgumentParser(description='Fingerprinting script for MD trajectories')
-parser.add_argument('gro_file', type=str, help='Input .gro file')
-parser.add_argument('xtc_file', type=str, help='Input .xtc file')
-
-args = parser.parse_args()
-
-gro_file = args.gro_file
-xtc_file = args.xtc_file
-
-binsize = 2  # Angstrom
-
-# Replace the hard-coded file paths with the gro_file and xtc_file variables
+################
+gro_file = sys.argv[1]
+xtc_file = sys.argv[2]
 u = mda.Universe(gro_file, xtc_file)
+binsize = 2 # Angstrom
 nbins = np.round(u.trajectory.ts.dimensions / binsize).astype(int)
 binsize = u.trajectory.ts.dimensions / nbins
+################
 
-## selections
-
-protein = u.select_atoms('protein')  # Should select TMD...
+# selections
+protein = u.select_atoms('protein') # Should select TMD...
 membrane = u.select_atoms('not protein')
 linkers = membrane.select_atoms('name AM1 or name AM2 or name GL1 or name GL2')
-lipids = [u.select_atoms('resname ' + lip) for lip in set(u.select_atoms('not protein').resnames)]
+lipids = [ u.select_atoms('resname ' + lip) for lip in set(u.select_atoms('not protein').resnames) ]
 
-pangles = protein.positions[:, 2] * (2 * np.pi / membrane.dimensions[2])
-mangles = membrane.positions[:, 2] * (2 * np.pi / membrane.dimensions[2])
+pangles = protein.positions[:,  2] * (2 * np.pi / membrane.dimensions[2])
+mangles = membrane.positions[:,  2] * (2 * np.pi / membrane.dimensions[2])
 langles = linkers.positions[:, 2] * (2 * np.pi / membrane.dimensions[2])
 
 linz = np.arctan2(np.sin(langles).mean(), np.cos(langles).mean())
@@ -70,44 +80,127 @@ plt.title('Membrane and protein angles')
 
 plt.legend(fontsize='small')
 
+plt.savefig("Membrane_Protein_Angles", dpi=400)
+
 plt.show()
 
 protein = protein.indices[tmd]
 
-## frame processing
+##########################
 
 def process_frame(frame, protein, lipids, nbins, binsize, distbins):
     pos = frame.positions
     box = frame.dimensions[:3]
-    box_half = box / 2
 
-    dist = np.zeros((len(protein), len(lipids)))
-    for i, p in enumerate(protein):
-        for j, l in enumerate(lipids):
-            lpos = pos[l.indices]
-            diff = lpos - pos[p]
-            diff -= box * np.round(diff / box)
-            dist[i, j] = np.sqrt((diff * diff).sum(axis=1)).min()
+    xybins = ((pos[:, :2] % box[:2]) * (nbins[:2] / box[:2])).astype(int)
 
-    hist, _ = np.histogram(dist, bins=distbins)
-    return hist / len(protein)
+    # Cells occupied by protein
+    pbins = xybins[protein]
+    pcount = np.bincount(pbins[:, 0] * nbins[1] + pbins[:, 1])
+    pwhere = np.where(pcount)[0]
+    pcells = np.stack((pwhere // nbins[1], pwhere % nbins[1]), axis=1)
 
-## main loop
+    # Distances of cells from protein
+    cells = np.mgrid[:nbins[0], :nbins[1]].T.reshape((-1, 2))
+    distances = (((cells[:, None, :] - pcells[None, :]) * binsize)**2).sum(axis=2).min(axis=1) ** 0.5
+    
+    # Bincounts per lipid type
+    counts = {}
+    for lip in lipids:
+        lbins = xybins[lip.indices]
+        lcount = np.bincount(lbins[:, 0] * nbins[1] + lbins[:, 1], minlength=cells.shape[0])
+        counts[lip] = lcount
+        
+    # Composition as function of distance
+    lo = -1
+    fpr = []
+    for hi in distbins:
+        m = (distances > lo) & (distances <= hi)
+        fpr.append([c[m].sum() for l, c in counts.items()])
+        lo = hi
 
-start_time = time.time()
-hist = np.zeros((len(lipids), nbins[0]))
+    return fpr
 
-distbins = np.linspace(0, nbins[0] * binsize[0], nbins[0] + 1)
+##########################
 
-for frame in u.trajectory:
-    hist += process_frame(frame, protein, lipids, nbins, binsize, distbins)
-    print(f"Processed frame {frame.frame} / {len(u.trajectory)}")
+# For 5000 frames this takes a few minutes on a MacBook Pro.
 
-hist /= len(u.trajectory)
+# per frame per distance a cumulative number composition vector
+# frames * distancebins * lipidtypes
+fingerprints = []
 
-## output
+distbins = np.linspace(0, 80, 81)
 
-df = pd.DataFrame(hist, columns=distbins[:-1], index=[lip.resname for lip in lipids])
-df.to_csv('lipid_fingerprint.csv')
+for frame in u.trajectory[::10]:
+    fp = process_frame(frame, protein, lipids, nbins[:2], binsize[:2], distbins)
+    fingerprints.append(fp)
 
-print(f"Done! Time taken: {time.time() - start_time:.2f} seconds")
+names = [lip[0].resname for lip in lipids]
+sizes = [ len(l.split('residue')[0]) for l in lipids ]
+
+F = np.array(fingerprints).cumsum(axis=1)
+M = F.mean(axis=0) / sizes
+P = M / M.sum(axis=1)[:, None]
+L = np.log(P / P[-1]) / np.log(1.1)
+
+print("Log1.1 enrichment with respect to total as function of distance from protein.")
+print("   ", *names, sep="  ")
+for d, f in zip(distbins, np.round(L, 2)):
+    print(d, f)
+
+print('---')
+
+print("Fingerprint percentages as function of distance from protein.")
+print("   ", *names, sep="  ")
+for d, f in zip(distbins, np.round(100*P, 2)):
+    print(d, f)
+    
+##########################
+
+for i in range(len(lipids)):
+    plt.plot(distbins, 100*(P[:, i] - P[-1, i]))
+plt.legend(names)
+plt.show()
+
+##########################
+
+# Plot each lipid type with a specific color
+for i in range(len(lipids)):
+    plt.plot(distbins, L[:, i])
+plt.legend(names)
+plt.xlabel('Distance from protein (...)')
+plt.ylabel('log1.1 enrichment')
+plt.title('Log1.1 enrichment per lipid type as function of distance from protein')
+
+plt.savefig("Log1-1_enrichment", dpi=400)
+
+##########################
+
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Visualization
+fig, ax = plt.subplots(figsize=(12, 6))
+sns.heatmap(L.T, cmap='coolwarm', cbar_kws={'label': 'Log1.1 Enrichment'}, xticklabels=5, yticklabels=names, ax=ax)
+
+ax.set_xlabel('Distance from Protein')
+ax.set_ylabel('Lipid Types')
+ax.set_title('Log1.1 Enrichment with respect to Total as Function of Distance from Protein')
+
+plt.savefig("Log1-1_enrichment_hm", dpi=400)
+
+plt.show()
+
+##########################
+
+#correlation matrix
+correlation_matrix = np.corrcoef(composition_matrix.T)
+
+plt.figure(figsize=(8, 8))
+sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", xticklabels=names, yticklabels=names)
+plt.title("Correlation Matrix of Lipid Compositions")
+
+plt.savefig("Cormat_lip_comp,", dpi=400)
+
+plt.show()
