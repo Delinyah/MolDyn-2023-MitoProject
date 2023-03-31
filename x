@@ -16,17 +16,17 @@ def create_panel(subfolder):
 
     # Calculate the size of the combined image
     widths, heights = zip(*(img.size for img in images))
-    total_height = sum(heights)
-    max_width = max(widths)
+    total_width = sum(widths)
+    max_height = max(heights)
 
     # Create an empty image with the combined size
-    panel = Image.new("RGBA", (max_width, total_height))
+    panel = Image.new("RGBA", (total_width, max_height))
 
     # Paste images onto the panel
-    y_offset = 0
+    x_offset = 0
     for img in images:
-        panel.paste(img, (0, y_offset))
-        y_offset += img.size[1]
+        panel.paste(img, (x_offset, 0))
+        x_offset += img.size[0]
 
     # Save the panel image in the subfolder
     panel.save(os.path.join(subfolder, "panel.png"))
