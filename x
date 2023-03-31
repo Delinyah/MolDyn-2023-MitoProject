@@ -1,36 +1,14 @@
-import os
-import sys
-from PIL import Image
-
-def create_panel(subfolder):
-    # List of image file names in the order you want them to appear in the panel
-    image_files = [
-        "Membrane_Protein_Angles.png",
-        "Log1-1_enrichment.png",
-        "Log1-1_enrichment_hm.png",
-        "Covmat_lip_comp,.png",
-    ]
-
-    # Read images from the subfolder
-    images = [Image.open(os.path.join(subfolder, file)) for file in image_files]
-
-    # Calculate the size of the combined image
-    widths, heights = zip(*(img.size for img in images))
-    total_width = sum(widths)
-    max_height = max(heights)
-
-    # Create an empty image with the combined size
-    panel = Image.new("RGBA", (total_width, max_height))
-
-    # Paste images onto the panel
-    x_offset = 0
-    for img in images:
-        panel.paste(img, (x_offset, 0))
-        x_offset += img.size[0]
-
-    # Save the panel image in the subfolder
-    panel.save(os.path.join(subfolder, "panel.png"))
-
-if __name__ == "__main__":
-    subfolder = sys.argv[1]
+Processing folder: /home/delinyah/Project/OMM/structures-outer-new/testfolder/1nzn
+Traceback (most recent call last):
+  File "fppanel.py", line 52, in <module>
     create_panel(subfolder)
+  File "fppanel.py", line 37, in create_panel
+    font = ImageFont.truetype("arial.tff", 24)
+  File "/usr/local/lib/python3.6/dist-packages/PIL/ImageFont.py", line 855, in truetype
+    return freetype(font)
+  File "/usr/local/lib/python3.6/dist-packages/PIL/ImageFont.py", line 852, in freetype
+    return FreeTypeFont(font, size, index, encoding, layout_engine)
+  File "/usr/local/lib/python3.6/dist-packages/PIL/ImageFont.py", line 212, in __init__
+    font, size, index, encoding, layout_engine=layout_engine
+OSError: cannot open resource
+Completed processing folder: /home/delinyah/Project/OMM/structures-outer-new/testfolder/1nzn
