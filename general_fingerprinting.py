@@ -16,6 +16,10 @@
 # from which it could be seen whether specific lipid types are coupled
 # (e.g., negatively charged lipids might exchange and thus be negatively coupled in the covariance matrix).
 
+################
+
+print("Importing modules")
+
 import MDAnalysis as mda
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,11 +30,15 @@ import sys
 ################
 gro_file = sys.argv[1]
 xtc_file = sys.argv[2]
+output_folder = sys.argv[3]
+
 u = mda.Universe(gro_file, xtc_file)
 binsize = 2 # Angstrom
 nbins = np.round(u.trajectory.ts.dimensions / binsize).astype(int)
 binsize = u.trajectory.ts.dimensions / nbins
 ################
+
+print("Created your universe and set standard binning settings")
 
 # selections
 protein = u.select_atoms('protein') # Should select TMD...
@@ -41,6 +49,8 @@ lipids = [ u.select_atoms('resname ' + lip) for lip in set(u.select_atoms('not p
 pangles = protein.positions[:,  2] * (2 * np.pi / membrane.dimensions[2])
 mangles = membrane.positions[:,  2] * (2 * np.pi / membrane.dimensions[2])
 langles = linkers.positions[:, 2] * (2 * np.pi / membrane.dimensions[2])
+
+print("Converted coordinates to angles")
 
 linz = np.arctan2(np.sin(langles).mean(), np.cos(langles).mean())
 
@@ -55,6 +65,8 @@ mangles -= np.pi
 pangles += np.pi - linz
 pangles %= 2 * np.pi
 pangles -= np.pi
+
+print("Dealt with PBC")
 
 up = langles > 0
 
@@ -80,13 +92,15 @@ plt.title('Membrane and protein angles')
 
 plt.legend(fontsize='small')
 
-plt.savefig("Membrane_Protein_Angles", dpi=400)
-
-plt.show()
+plt.savefig(f"{output_folder}/Membrane_Protein_Angles", dpi=400)
 
 protein = protein.indices[tmd]
 
+print("Done with main selections and plotted the system")
+
 ##########################
+
+print("Now defining the process_frame function")
 
 def process_frame(frame, protein, lipids, nbins, binsize, distbins):
     pos = frame.positions
@@ -121,7 +135,11 @@ def process_frame(frame, protein, lipids, nbins, binsize, distbins):
 
     return fpr
 
+print("Defined process_frame function")
+
 ##########################
+
+print("Now I will process your frames. This may take a while.")
 
 # For 5000 frames this takes a few minutes on a MacBook Pro.
 
@@ -131,9 +149,17 @@ fingerprints = []
 
 distbins = np.linspace(0, 80, 81)
 
+start_time = time.time() # record start time
+
 for frame in u.trajectory[::10]:
     fp = process_frame(frame, protein, lipids, nbins[:2], binsize[:2], distbins)
     fingerprints.append(fp)
+
+end_time = time.time() # record end time
+
+elapsed = end_time - start_time
+
+print(f"Processed frames in {elapsed:.2f} seconds")
 
 names = [lip[0].resname for lip in lipids]
 sizes = [ len(l.split('residue')[0]) for l in lipids ]
@@ -157,22 +183,17 @@ for d, f in zip(distbins, np.round(100*P, 2)):
     
 ##########################
 
-for i in range(len(lipids)):
-    plt.plot(distbins, 100*(P[:, i] - P[-1, i]))
-plt.legend(names)
-plt.show()
-
-##########################
-
-# Plot each lipid type with a specific color
+fig, ax = plt.subplots(figsize=(12, 6))
 for i in range(len(lipids)):
     plt.plot(distbins, L[:, i])
 plt.legend(names)
-plt.xlabel('Distance from protein (...)')
+plt.xlabel('Distance from protein (nm)')
 plt.ylabel('log1.1 enrichment')
 plt.title('Log1.1 enrichment per lipid type as function of distance from protein')
 
-plt.savefig("Log1-1_enrichment", dpi=400)
+plt.savefig(f"{output_folder}/Log1-1_enrichment", dpi=400)
+
+print("Plotted log1.1 enrichments.")
 
 ##########################
 
@@ -184,23 +205,26 @@ import seaborn as sns
 fig, ax = plt.subplots(figsize=(12, 6))
 sns.heatmap(L.T, cmap='coolwarm', cbar_kws={'label': 'Log1.1 Enrichment'}, xticklabels=5, yticklabels=names, ax=ax)
 
-ax.set_xlabel('Distance from Protein')
+ax.set_xlabel('Distance from Protein (nm)')
 ax.set_ylabel('Lipid Types')
 ax.set_title('Log1.1 Enrichment with respect to Total as Function of Distance from Protein')
 
-plt.savefig("Log1-1_enrichment_hm", dpi=400)
+plt.savefig(f"{output_folder}/Log1-1_enrichment_hm", dpi=400)
 
-plt.show()
+print("Plotted log1.1 enrichments as heatmap")
 
 ##########################
 
 #correlation matrix
+composition_matrix = P
+
 correlation_matrix = np.corrcoef(composition_matrix.T)
 
 plt.figure(figsize=(8, 8))
 sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", xticklabels=names, yticklabels=names)
 plt.title("Correlation Matrix of Lipid Compositions")
 
-plt.savefig("Cormat_lip_comp,", dpi=400)
+plt.savefig(f"{output_folder}/Cormat_lip_comp", dpi=400)
 
-plt.show()
+print("Plotted correlation matrix")
+print("Done with this .py script")
