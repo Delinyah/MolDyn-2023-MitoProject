@@ -44,13 +44,40 @@ print("Created your universe and set standard binning settings")
 protein = u.select_atoms('protein') # Should select TMD...
 membrane = u.select_atoms('not protein')
 linkers = membrane.select_atoms('name AM1 or name AM2 or name GL1 or name GL2')
-lipids = [ u.select_atoms('resname ' + lip) for lip in set(u.select_atoms('not protein').resnames) ]
 
+# Function to get the atomgroups for each lipid and each leaflet
+def get_leaflet(universe, headgroup='PO4'):
+    
+    headgroups = universe.select_atoms('name ' + headgroup)
+    lipids = universe.select_atoms('not protein and not type W and not type NA* and not type CL*')
+    center = headgroups.center_of_mass()
+    
+    lower_leaflet_headgroups = headgroups.select_atoms(f'prop z < {center[2]}')
+    upper_leaflet_headgroups = headgroups.select_atoms(f'prop z > {center[2]}')
+    
+    upper_leaflet_resids = upper_leaflet_headgroups.resids
+    lower_leaflet_resids = lower_leaflet_headgroups.resids
+    
+    upper_leaflet = lipids.select_atoms('resid ' + ' '.join(str(x) for x in upper_leaflet_resids))
+    lower_leaflet = lipids.select_atoms('resid ' + ' '.join(str(x) for x in lower_leaflet_resids))
+    
+    unique_lipid_upper = np.unique(upper_leaflet.resnames)
+    unique_lipid_lower = np.unique(lower_leaflet.resnames)
+    lipids_upper = [upper_leaflet.select_atoms(f'resname {lipid}') for lipid in unique_lipid_upper]
+    lipids_lower = [lower_leaflet.select_atoms(f'resname {lipid}') for lipid in unique_lipid_lower]
+    
+    lipids = lipids_upper + lipids_lower
+    
+    return lipids_lower, lipids_upper, lipids
+
+#Get the atomgroups for each lipid and each leaflet
+lipids_lower, lipids_upper, lipids = get_leaflet(membrane)
+
+#This hashed line below works if we do not want to separate the lipids in the upper and lower leaflet
+#lipids = [ u.select_atoms('resname ' + lip) for lip in set(u.select_atoms('not protein').resnames) ]
 pangles = protein.positions[:,  2] * (2 * np.pi / membrane.dimensions[2])
 mangles = membrane.positions[:,  2] * (2 * np.pi / membrane.dimensions[2])
 langles = linkers.positions[:, 2] * (2 * np.pi / membrane.dimensions[2])
-
-print("Converted coordinates to angles")
 
 linz = np.arctan2(np.sin(langles).mean(), np.cos(langles).mean())
 
@@ -65,8 +92,6 @@ mangles -= np.pi
 pangles += np.pi - linz
 pangles %= 2 * np.pi
 pangles -= np.pi
-
-print("Dealt with PBC")
 
 up = langles > 0
 
@@ -92,7 +117,9 @@ plt.title('Membrane and protein angles')
 
 plt.legend(fontsize='small')
 
-plt.savefig(f"{output_folder}/Membrane_Protein_Angles", dpi=400)
+plt.savefig("Membrane_Protein_Angles", dpi=400)
+
+plt.show()
 
 protein = protein.indices[tmd]
 
@@ -161,7 +188,16 @@ elapsed = end_time - start_time
 
 print(f"Processed frames in {elapsed:.2f} seconds")
 
-names = [lip[0].resname for lip in lipids]
+names_upper = [lip[0].resname + '_u' for lip in lipids_upper]
+names_lower = [lip[0].resname + '_l' for lip in lipids_lower]
+names = names_upper + names_lower
+
+# Indices for upper and lower leaflets
+upper_indices = [i for i, name in enumerate(names) if name.endswith('_u')]
+lower_indices = [i for i, name in enumerate(names) if name.endswith('_l')]
+
+#This line works if we do not want to separete the lipids in the upper and lower leaflet
+#names = [lip[0].resname for lip in lipids]
 sizes = [ len(l.split('residue')[0]) for l in lipids ]
 
 F = np.array(fingerprints).cumsum(axis=1)
@@ -183,15 +219,30 @@ for d, f in zip(distbins, np.round(100*P, 2)):
     
 ##########################
 
-fig, ax = plt.subplots(figsize=(12, 6))
-for i in range(len(lipids)):
-    plt.plot(distbins, L[:, i])
-plt.legend(names)
-plt.xlabel('Distance from protein (nm)')
-plt.ylabel('log1.1 enrichment')
-plt.title('Log1.1 enrichment per lipid type as function of distance from protein')
+plt.figure()
 
-plt.savefig(f"{output_folder}/Log1-1_enrichment", dpi=400)
+for i in upper_indices:
+    plt.plot(distbins, L[:, i])
+
+plt.legend(names_upper)
+plt.xlabel('Distance from protein (...)')
+plt.ylabel('log1.1 enrichment')
+plt.title('Log1.1 lipid enrichment in upper leaflet as function of distance from protein')
+plt.axhline(0,color='k', linestyle='--', linewidth=1)
+plt.savefig("Log1-1_enrichment_upper", dpi=400)
+
+# Plot for lower leaflet
+plt.figure()
+
+for i in lower_indices:
+    plt.plot(distbins, L[:, i])
+
+plt.legend(names_lower)
+plt.xlabel('Distance from protein (...)')
+plt.ylabel('log1.1 enrichment')
+plt.title('Log1.1 lipid enrichment in lower leaflet as function of distance from protein')
+plt.axhline(0,color='k', linestyle='--', linewidth=1)
+plt.savefig("Log1-1_enrichment_lower", dpi=400)
 
 print("Plotted log1.1 enrichments.")
 
@@ -202,29 +253,54 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Visualization
-fig, ax = plt.subplots(figsize=(12, 6))
-sns.heatmap(L.T, cmap='coolwarm', cbar_kws={'label': 'Log1.1 Enrichment'}, xticklabels=5, yticklabels=names, ax=ax)
+# Slice the data based on upper and lower leaflet indices
+L_upper = L[:, upper_indices]
+L_lower = L[:, lower_indices]
 
-ax.set_xlabel('Distance from Protein (nm)')
+# Heatmap for upper leaflet
+fig, ax = plt.subplots(figsize=(8, 4))
+sns.heatmap(L_upper.T, cmap='coolwarm', cbar_kws={'label': 'Log1.1 Enrichment'}, xticklabels=5, yticklabels=names_upper, ax=ax)
+ax.set_xlabel('Distance from Protein')
 ax.set_ylabel('Lipid Types')
-ax.set_title('Log1.1 Enrichment with respect to Total as Function of Distance from Protein')
+ax.set_title('Log1.1 Enrichment with respect to Total as Function of Distance from Protein; upper leaflet')
+plt.savefig("Log1-1_enrichment_upper_hm", dpi=400)
 
-plt.savefig(f"{output_folder}/Log1-1_enrichment_hm", dpi=400)
+# Heatmap for lower leaflet
+fig, ax = plt.subplots(figsize=(8, 4))
+sns.heatmap(L_lower.T, cmap='coolwarm', cbar_kws={'label': 'Log1.1 Enrichment'}, xticklabels=5, yticklabels=names_lower, ax=ax)
+ax.set_xlabel('Distance from Protein')
+ax.set_ylabel('Lipid Types')
+ax.set_title('Log1.1 Enrichment with respect to Total as Function of Distance from Protein; lower leaflet')
+plt.savefig("Log1-1_enrichment_lower_hm", dpi=400)
 
 print("Plotted log1.1 enrichments as heatmap")
 
 ##########################
 
 #correlation matrix
-composition_matrix = P
+composition_matrix_upper = P[:, upper_indices]
+composition_matrix_lower = P[:, lower_indices]
 
-correlation_matrix = np.corrcoef(composition_matrix.T)
+cormat_upper = np.corrcoef(composition_matrix_upper.T)
+cormat_lower = np.corrcoef(composition_matrix_lower.T)
 
-plt.figure(figsize=(8, 8))
-sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", xticklabels=names, yticklabels=names)
-plt.title("Correlation Matrix of Lipid Compositions")
+print("Correlation matrix upper:")
+print(cormat_upper)
 
-plt.savefig(f"{output_folder}/Cormat_lip_comp", dpi=400)
+print("Correlation matrix lower:")
+print(cormat_lower)
+
+# Heatmap for upper leaflet
+plt.figure(figsize=(4, 4))
+sns.heatmap(cormat_upper, annot=False, cmap="coolwarm", xticklabels=names_upper, yticklabels=names_upper)
+plt.title("Correlation Matrix of Lipid Compositions (Upper)")
+plt.savefig("Cormat_lip_comp_upper", dpi=400)
+
+# Heatmap for lower leaflet
+plt.figure(figsize=(4, 4))
+sns.heatmap(cormat_lower, annot=False, cmap="coolwarm", xticklabels=names_lower, yticklabels=names_lower)
+plt.title("Correlation Matrix of Lipid Compositions (Lower)")
+plt.savefig("Cormat_lip_comp_lower", dpi=400)
 
 print("Plotted correlation matrix")
 print("Done with this .py script")
