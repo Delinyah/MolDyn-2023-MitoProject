@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import time
 import sys
+import seaborn as sns
 
 ################
 gro_file = sys.argv[1]
@@ -40,6 +41,8 @@ binsize = u.trajectory.ts.dimensions / nbins
 print("Created your universe and set standard binning settings")
 
 ################
+
+
 
 # selections
 protein = u.select_atoms('protein') # Should select TMD...
@@ -107,9 +110,11 @@ def get_leaflet(universe, headgroup='PO4'):
     '''End: This section can be deleted'''
 
     return lipids_lower, lipids_upper, lipids
+
 #Get the atomgroups for each lipid and each leaflet
 lipids_lower, lipids_upper, lipids = get_leaflet(membrane)
 membrane.select_atoms('resname W')
+
 #This line works if we do not want to separete the lipids in the upper and lower leaflet
 #lipids = [ u.select_atoms('resname ' + lip) for lip in set(u.select_atoms('not protein').resnames) ]
 pangles = protein.positions[:,  2] * (2 * np.pi / membrane.dimensions[2])
@@ -175,7 +180,6 @@ def process_frame(frame, protein, lipids, nbins, binsize, distbins):
     pcount = np.bincount(pbins[:, 0] * nbins[1] + pbins[:, 1])
     pwhere = np.where(pcount)[0]
     pcells = np.stack((pwhere // nbins[1], pwhere % nbins[1]), axis=1)
-
     # Distances of cells from protein
     cells = np.mgrid[:nbins[0], :nbins[1]].T.reshape((-1, 2))
     distances = (((cells[:, None, :] - pcells[None, :]) * binsize)**2).sum(axis=2).min(axis=1) ** 0.5
@@ -194,55 +198,38 @@ def process_frame(frame, protein, lipids, nbins, binsize, distbins):
         m = (distances > lo) & (distances <= hi)
         fpr.append([c[m].sum() for l, c in counts.items()])
         lo = hi
-
     return fpr
-
 print("Defined process_frame function")
 
 ##########################
 
 print("Now I will process your frames. This may take a while.")
-
 # For 5000 frames this takes a few minutes on a MacBook Pro.
-
 # per frame per distance a cumulative number composition vector
 # frames * distancebins * lipidtypes
-
 start_time = time.time() # record start time
-
 fingerprints = []
-
 fingerprints = []
-
 distbins = np.linspace(0, 80, 81)
-
 for frame in u.trajectory[::10]:
     fp = process_frame(frame, protein, lipids, nbins[:2], binsize[:2], distbins)
     fingerprints.append(fp)
-
 end_time = time.time() # record end time
-
 elapsed = end_time - start_time
-
 print(f"Processed frames in {elapsed:.2f} seconds")
-
 names_upper = [lip[0].resname + '_u' for lip in lipids_upper]
 names_lower = [lip[0].resname + '_l' for lip in lipids_lower]
 names = names_upper + names_lower
-
 # Indices for upper and lower leaflets
 upper_indices = [i for i, name in enumerate(names) if name.endswith('_u')]
 lower_indices = [i for i, name in enumerate(names) if name.endswith('_l')]
-
 #This line works if we do not want to separete the lipids in the upper and lower leaflet
 #names = [lip[0].resname for lip in lipids]
 sizes = [ len(l.split('residue')[0]) for l in lipids ]
-
 F = np.array(fingerprints).cumsum(axis=1)
 M = F.mean(axis=0) / sizes
 P = M / M.sum(axis=1)[:, None]
 L = np.log(P / P[-1]) / np.log(1.1)
-
 print("Log1.1 enrichment with respect to total as function of distance from protein.")
 print("   ", *names, sep="  ")
 for d, f in zip(distbins, np.round(L, 2)):
@@ -254,11 +241,8 @@ print("Fingerprint percentages as function of distance from protein.")
 print("   ", *names, sep="  ")
 for d, f in zip(distbins, np.round(100*P, 2)):
     print(d, f)
-    
-##########################
 
-# Plot for upper leaflet
-plt.figure()
+##########################
 
 # Plot for upper leaflet
 plt.figure()
@@ -272,7 +256,6 @@ plt.ylabel('log1.1 enrichment')
 plt.title('Log1.1 enrichment per lipid type as function of distance from protein (Upper)')
 plt.axhline(0,color='k', linestyle='--', linewidth=1)
 plt.savefig(f"{output_folder}/Log1-1_enrichment_upper", dpi=400)
-plt.show()
 
 # Plot for lower leaflet
 plt.figure()
@@ -286,7 +269,6 @@ plt.ylabel('log1.1 enrichment')
 plt.title('Log1.1 enrichment per lipid type as function of distance from protein (Lower)')
 plt.axhline(0,color='k', linestyle='--', linewidth=1)
 plt.savefig(f"{output_folder}/Log1-1_enrichment_lower", dpi=400)
-plt.show()
 
 print("Plotted log1.1 enrichments.")
 
@@ -309,11 +291,11 @@ plt.figure(figsize=(4, 4))
 sns.heatmap(cormat_upper, annot=False, cmap="coolwarm", xticklabels=names_upper, yticklabels=names_upper)
 plt.title("Correlation Matrix of Lipid Compositions (Upper)")
 plt.savefig(f"{output_folder}/Cormat_lip_comp_upper", dpi=400)
-plt.show()
 
 # Heatmap for lower leaflet
 plt.figure(figsize=(4, 4))
 sns.heatmap(cormat_lower, annot=False, cmap="coolwarm", xticklabels=names_lower, yticklabels=names_lower)
 plt.title("Correlation Matrix of Lipid Compositions (Lower)")
 plt.savefig(f"{output_folder}/Cormat_lip_comp_lower", dpi=400)
-plt.show()
+
+print("done with this script")
