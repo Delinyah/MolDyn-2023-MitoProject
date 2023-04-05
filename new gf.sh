@@ -142,6 +142,8 @@ lolim = np.quantile(langles[~up], 0.1)
 
 tmd = np.where((pangles > lolim) & (pangles < uplim))[0]
 
+plt.rcParams.update({'font.size': 8})  # You can adjust the font size to a smaller value if you prefer
+
 plt.scatter(membrane.positions[:, 0], mangles, s=1, c='#999999', label='Solvent')
 plt.scatter(protein.positions[:, 0], pangles, s=1, c='#000099', label='Rest of Protein')
 plt.scatter(protein.positions[tmd, 0], pangles[tmd], s=5, c='red', zorder=10, label='TMD Protein')
@@ -247,6 +249,8 @@ for d, f in zip(distbins, np.round(100*P, 2)):
 # Plot for upper leaflet
 plt.figure()
 
+plt.rcParams.update({'font.size': 8})  # You can adjust the font size to a smaller value if you prefer
+
 for i in upper_indices:
     plt.plot(distbins, L[:, i])
 
@@ -259,6 +263,8 @@ plt.savefig(f"{output_folder}/Log1-1_enrichment_upper", dpi=400)
 
 # Plot for lower leaflet
 plt.figure()
+
+plt.rcParams.update({'font.size': 8})  # You can adjust the font size to a smaller value if you prefer
 
 for i in lower_indices:
     plt.plot(distbins, L[:, i])
@@ -288,12 +294,18 @@ print(cormat_lower)
 
 # Heatmap for upper leaflet
 plt.figure(figsize=(4, 4))
+
+plt.rcParams.update({'font.size': 8})  # You can adjust the font size to a smaller value if you prefer
+
 sns.heatmap(cormat_upper, annot=False, cmap="coolwarm", xticklabels=names_upper, yticklabels=names_upper)
 plt.title("Correlation Matrix of Lipid Compositions (Upper)")
 plt.savefig(f"{output_folder}/Cormat_lip_comp_upper", dpi=400)
 
 # Heatmap for lower leaflet
 plt.figure(figsize=(4, 4))
+
+plt.rcParams.update({'font.size': 8})  # You can adjust the font size to a smaller value if you prefer
+
 sns.heatmap(cormat_lower, annot=False, cmap="coolwarm", xticklabels=names_lower, yticklabels=names_lower)
 plt.title("Correlation Matrix of Lipid Compositions (Lower)")
 plt.savefig(f"{output_folder}/Cormat_lip_comp_lower", dpi=400)
