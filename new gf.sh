@@ -230,6 +230,10 @@ names_upper = [lip[0].resname + '_u' for lip in lipids_upper]
 names_lower = [lip[0].resname + '_l' for lip in lipids_lower]
 names = names_upper + names_lower
 
+# Indices for upper and lower leaflets
+upper_indices = [i for i, name in enumerate(names) if name.endswith('_u')]
+lower_indices = [i for i, name in enumerate(names) if name.endswith('_l')]
+
 #This line works if we do not want to separete the lipids in the upper and lower leaflet
 #names = [lip[0].resname for lip in lipids]
 sizes = [ len(l.split('residue')[0]) for l in lipids ]
