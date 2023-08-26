@@ -1,6 +1,6 @@
 # MolDyn 2023-MitoProject
 **Molecular Dynamics of Mitochondrial Membrane Proteins in Their Native Lipid Environment**
-This repository covers all files that were made and used for high-throughput computational modeling of mitochondrial membrane-protein systems. This project at Molecular Dynamics, University of Groningen, was adequate for fulfillment of the bachelor Biology and Medical Laboratory Research at Hanze University of Applied Sciences.<br>
+This repository covers all files that were made and used for high-throughput computational modeling of mitochondrial membrane-protein systems. This project at Molecular Dynamics, University of Groningen, was adequate for fulfillment of the bachelor Biology and Medical Laboratory Research at Hanze University of Applied Sciences.
 
 _Group: Molecular Dynamics, University of Groningen (prof. S.J. Marrink)._
 _Supervisors: Dr. Tsjerk A. Wassenaar and Msc. Rubi Garcia-Zarmiento._
